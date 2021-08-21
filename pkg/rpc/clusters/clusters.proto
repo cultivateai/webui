@@ -9,6 +9,7 @@ service Clusters {
     rpc ListKustomizations (ListKustomizationsReq) returns (ListKustomizationsRes);
     rpc ListSources (ListSourcesReq) returns (ListSourcesRes);
     rpc SyncKustomization (SyncKustomizationReq) returns (SyncKustomizationRes);
+    rpc SuspendKustomization (SuspendKustomizationReq) returns (SuspendKustomizationRes);
     rpc ListHelmReleases (ListHelmReleasesReq) returns (ListHelmReleasesRes);
     rpc ListEvents (ListEventsReq) returns (ListEventsRes);
     rpc SyncSource (SyncSourceReq) returns (SyncSourceRes);
@@ -72,7 +73,7 @@ message Kustomization {
     repeated SnapshotEntry snapshots = 12;
     string lastAppliedRevision = 13;
     string lastAttemptedRevision = 14;
-
+    bool suspend = 15;
 }
 
 message ListKustomizationsReq {
@@ -151,6 +152,16 @@ message SyncKustomizationReq {
 }
 
 message SyncKustomizationRes {
+    Kustomization kustomization = 1;
+}
+
+message SuspendKustomizationReq {
+    string contextName = 1;
+    string namespace = 2;
+    string kustomizationName = 3;
+}
+
+message SuspendKustomizationRes {
     Kustomization kustomization = 1;
 }
 

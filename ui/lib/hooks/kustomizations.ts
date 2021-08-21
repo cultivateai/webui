@@ -5,6 +5,7 @@ import {
   GroupVersionKind,
   Kustomization,
   SyncKustomizationRes,
+  SuspendKustomizationRes,
   UnstructuredObject,
 } from "../rpc/clusters";
 import { notifyError, notifySuccess } from "../util";
@@ -87,6 +88,28 @@ export function useKustomizations(
       })
       .catch((err) => notifyError(err.message));
 
+  const suspendKustomization = (k: Kustomization) =>
+    clustersClient
+      .suspendKustomization({
+        contextname: currentContext,
+        namespace: k.namespace,
+        kustomizationname: k.name,
+      })
+      .then((res: SuspendKustomizationRes) => {
+        setKustomizations({
+          ...kustomizations,
+          [k.name]: res.kustomization,
+        });
+
+        if (res.kustomization.suspend) {
+          notifySuccess("Suspend successful");
+         } else {
+          notifySuccess("Resume successful");           
+         }
+      })
+      .catch((err) => notifyError(err.message));
+
+
   const getReconciledObjects = (
     kustomizationname: string,
     kustomizationnamespace: string,
@@ -146,6 +169,7 @@ export function useKustomizations(
   return {
     kustomizations,
     syncKustomization,
+    suspendKustomization,
     loading,
     getReconciledObjects,
     getChildObjects,

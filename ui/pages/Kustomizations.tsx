@@ -41,6 +41,12 @@ function Kustomizations({ className }: Props) {
       label: "Name",
     },
     {
+      label: "Suspended",
+      value: (k: Kustomization) => {
+        return k.suspend.toString();
+      },
+    },
+    {
       label: "Ready",
       value: (k: Kustomization) => {
         const readyCondition = _.find(k.conditions, (c) => c.type === "Ready");

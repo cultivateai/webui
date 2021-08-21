@@ -185,6 +185,7 @@ func convertKustomization(kustomization kustomizev1.Kustomization, namespace str
 		Snapshots:             []*pb.SnapshotEntry{},
 		LastAppliedRevision:   kustomization.Status.LastAppliedRevision,
 		LastAttemptedRevision: kustomization.Status.LastAttemptedRevision,
+		Suspend:               kustomization.Spec.Suspend,
 	}
 	kinds := []*pb.GroupVersionKind{}
 
@@ -573,6 +574,46 @@ func (s *Server) SyncKustomization(ctx context.Context, msg *pb.SyncKustomizatio
 		return nil, err
 	}
 	return &pb.SyncKustomizationRes{Kustomization: k}, nil
+
+}
+
+func (s *Server) SuspendKustomization(ctx context.Context, msg *pb.SuspendKustomizationReq) (*pb.SuspendKustomizationRes, error) {
+	client, err := s.getClient(msg.ContextName)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not create client: %w", err)
+	}
+
+	name := types.NamespacedName{
+		Name:      msg.KustomizationName,
+		Namespace: msg.Namespace,
+	}
+	kustomization := kustomizev1.Kustomization{}
+
+	if err := client.Get(ctx, name, &kustomization); err != nil {
+		return nil, fmt.Errorf("could not list kustomizations: %w", err)
+	}
+
+	kustomization.Spec.Suspend = !kustomization.Spec.Suspend
+
+	if err := client.Update(ctx, &kustomization); err != nil {
+		return nil, fmt.Errorf("could not update kustomization: %w", err)
+	}
+
+	// if err := wait.PollImmediate(
+	// 	k8sPollInterval,
+	// 	k8sTimeout,
+	// 	checkResourceSync(ctx, client, name, kustomizationAdapter{&kustomizev1.Kustomization{}}, kustomization.Status.LastHandledReconcileAt),
+	// ); err != nil {
+	// 	return nil, err
+	// }
+
+	k, err := convertKustomization(kustomization, msg.Namespace)
+
+	if err != nil {
+		return nil, err
+	}
+	return &pb.SuspendKustomizationRes{Kustomization: k}, nil
 
 }
 

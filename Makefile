@@ -15,7 +15,7 @@ build: dist/index.html
 	CGO_ENABLED=0 go build -o ./bin/webui .
 
 dev: dist/index.html
-	reflex -r '.go' -s -- sh -c 'go run main.go'
+	reflex -R '.cache' -R 'node_modules' -r '.go' -s -- sh -c 'go run main.go'
 
 proto: pkg/rpc/clusters/clusters.proto
 	protoc pkg/rpc/clusters/clusters.proto --twirp_out=./ --go_out=. --twirp_typescript_out=./ui/lib/rpc

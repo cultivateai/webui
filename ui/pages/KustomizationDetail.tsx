@@ -52,6 +52,7 @@ const formatInfo = (detail: Kustomization) =>
 
 function KustomizationDetail({ className }: Props) {
   const [syncing, setSyncing] = React.useState(false);
+  const [suspending, setSuspending] = React.useState(false);
   const [selectedTab, setSelectedTab] = React.useState("graph");
   const [reconciledObjects, setReconciledObjects] = React.useState<
     UnstructuredObjectWithParent[]
@@ -62,6 +63,7 @@ function KustomizationDetail({ className }: Props) {
   const {
     kustomizations,
     syncKustomization,
+    suspendKustomization,
     getReconciledObjects,
     getChildrenRecursive,
   } = useKustomizations(currentContext, currentNamespace);
@@ -72,6 +74,14 @@ function KustomizationDetail({ className }: Props) {
 
     syncKustomization(kustomizationDetail).then(() => {
       setSyncing(false);
+    });
+  };
+
+  const handleSuspendClicked = () => {
+    setSuspending(true);
+
+    suspendKustomization(kustomizationDetail).then(() => {
+      setSuspending(false);
     });
   };
 
@@ -173,13 +183,23 @@ function KustomizationDetail({ className }: Props) {
           </Flex>
         </Breadcrumbs>
         <Button
-          onClick={handleSyncClicked}
+          onClick={handleSuspendClicked}
           color="primary"
+          disabled={suspending}
+          variant="contained"
+        >
+          {suspending ? <CircularProgress size={24} /> : kustomizationDetail.suspend ? "Resume" : "Suspend"}
+        </Button>
+{/*
+        <Button
+          onClick={handleSyncClicked}
+          color="secondary"
           disabled={syncing}
           variant="contained"
         >
           {syncing ? <CircularProgress size={24} /> : "Sync"}
         </Button>
+*/}
       </Flex>
 
       <Box marginBottom={2}>
